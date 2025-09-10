@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Virtual Assistant Kemlu RI</title>
+    
+    <link rel="icon" href="{{ url_for('static', filename='kemlu-logo.png') }}">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="container chatbot-box mt-4">
+        <header class="logo-wrapper text-center">
+            <img src="{{ url_for('static', filename='kemlu-logo.png') }}" alt="Logo Kemlu RI" class="kemlu-logo">
+            <h1 class="kemlu-heading" id="kemlu-heading">KEMENTERIAN LUAR NEGERI</h1>
+            <h2 class="ri-heading" id="ri-heading">R E P U B L I K &nbsp; I N D O N E S I A</h2>
+        </header>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="btn-group" role="group" aria-label="Tombol utilitas kiri">
+                <button id="help-btn" class="btn btn-sm btn-outline-secondary" aria-label="Bantuan dan Dokumentasi" data-bs-toggle="modal" data-bs-target="#helpModal">
+                    <i class="bi bi-question-circle"></i>
+                </button>
+                <button id="report-btn" class="btn btn-sm btn-outline-secondary" aria-label="Lapor atau Beri Masukan" data-bs-toggle="modal" data-bs-target="#reportModal">
+                    <i class="bi bi-flag"></i>
+                </button>
+            </div>
+            
+            <div class="btn-group" role="group" aria-label="Tombol utilitas kanan">
+                 <button id="download-pdf-btn" class="btn btn-sm btn-outline-secondary" aria-label="Unduh PDF">
+                    <i class="bi bi-file-earmark-arrow-down"></i>
+                </button>
+                <button id="lang-toggle" class="btn btn-sm btn-outline-secondary" aria-label="Ganti Bahasa">
+                    <i class="bi bi-translate"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-log-wrapper">
+            <main id="chat-log" class="chat-log"></main>
+            <div id="scroll-buttons">
+                <button id="scroll-top-btn" class="btn scroll-btn" aria-label="Scroll ke atas">
+                    <i class="bi bi-arrow-up-circle-fill"></i>
+                </button>
+                <button id="scroll-bottom-btn" class="btn scroll-btn" aria-label="Scroll ke bawah">
+                    <i class="bi bi-arrow-down-circle-fill"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="follow-up-container" class="follow-up-container"></div>
+
+        <form id="chat-form" class="position-relative">
+            <div class="input-group">
+                <button type="button" class="btn btn-light" id="reset-btn" data-bs-toggle="modal" data-bs-target="#resetConfirmModal" aria-label="Mulai Ulang Percakapan"><i class="bi bi-arrow-clockwise"></i></button>
+                <textarea class="form-control" id="userInput" rows="1" placeholder="Ketik"></textarea>
+                <button type="submit" class="btn" aria-label="Kirim Pesan"><i class="bi bi-send-fill"></i></button>
+            </div>
+        </form>
+        
+        <footer class="disclaimer-footer">
+            <p id="disclaimer-text" class="disclaimer-text"></p>
+            <div class="powered-by">
+                <span>Powered by</span>
+                <a href="https://www.deepseek.com/" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ url_for('static', filename='deepseek-logo.png') }}" alt="Deepseek Logo" class="powered-by-logo">
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="reportModalLabel"></h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="report-form" novalidate>
+              <div class="mb-3">
+                <label for="feedback-text" class="col-form-label" id="feedback-label"></label>
+                <textarea class="form-control" id="feedback-text" rows="5" required></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="modal-cancel-btn"></button>
+            <button type="submit" class="btn btn-primary" id="submit-feedback-btn" form="report-form"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="resetConfirmModal" tabindex="-1" aria-labelledby="resetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="resetModalLabel">Konfirmasi</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p id="reset-modal-body">Apakah Anda yakin ingin memulai ulang percakapan ini?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="reset-modal-cancel-btn">Batal</button>
+              <button type="button" class="btn" id="confirm-reset-btn">Ya, Mulai Ulang</button>
+            </div>
+          </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="helpModalLabel"></h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p id="help-modal-intro"></p>
+              
+              <div class="help-item">
+                  <div class="help-icon"><i class="bi bi-chat-dots-fill"></i></div>
+                  <div>
+                      <h5 id="help-item-start-title"></h5>
+                      <p class="mb-0" id="help-item-start-desc"></p>
+                  </div>
+              </div>
+      
+              <div class="help-item">
+                  <div class="help-icon"><i class="bi bi-arrow-clockwise"></i></div>
+                  <div>
+                      <h5 id="help-item-reset-title"></h5>
+                      <p class="mb-0" id="help-item-reset-desc"></p>
+                  </div>
+              </div>
+      
+              <div class="help-item">
+                  <div class="help-icon"><i class="bi bi-translate"></i></div>
+                  <div>
+                      <h5 id="help-item-lang-title"></h5>
+                      <p class="mb-0" id="help-item-lang-desc"></p>
+                  </div>
+              </div>
+      
+              <div class="help-item">
+                  <div class="help-icon"><i class="bi bi-flag-fill"></i></div>
+                  <div>
+                      <h5 id="help-item-feedback-title"></h5>
+                      <p class="mb-0" id="help-item-feedback-desc"></p>
+                  </div>
+              </div>
+      
+              <hr>
+              <p class="disclaimer-text mt-3" id="help-modal-disclaimer"></p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="help-modal-close-btn"></button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div id="success-alert" class="custom-alert success">
+        <i class="bi bi-check-circle-fill"></i>
+        <span id="success-alert-text"></span>
+    </div>
+    <div id="error-alert" class="custom-alert error">
+        <i class="bi bi-x-circle-fill"></i>
+        <span id="error-alert-text"></span>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const Chatbot = {
+            form: document.getElementById('chat-form'),
+            input: document.getElementById('userInput'),
+            chatLog: document.getElementById('chat-log'),
+            langToggle: document.getElementById('lang-toggle'),
+            heading: document.getElementById('kemlu-heading'),
+            subheading: document.getElementById('ri-heading'),
+            followUpContainer: document.getElementById('follow-up-container'),
+            disclaimer: document.getElementById('disclaimer-text'),
+            downloadPdfBtn: document.getElementById('download-pdf-btn'),
+            sessionId: null,
+            language: 'id',
+            errorCount: 0,
+            isTyping: false,
+
+            placeholders: { id: "Ketik...", en: "Type..." },
+            translations: { 
+                id: { 
+                    heading: 'KEMENTERIAN LUAR NEGERI', 
+                    subheading: 'R E P U B L I K  I N D O N E S I A', 
+                    welcome: 'Halo, Sahabat Kemlu! Selamat datang di AI Virtual Assistant Kementerian Luar Negeri RI. Ada yang bisa saya bantu?', 
+                    faqHeader: 'Pertanyaan yang sering diajukan:', 
+                    faq: [ "Lapor Diri (Pelaporan diri untuk WNI)", "Paspor & SPLP (Paspor dan Dokumen Perjalanan)", "Legalisasi Dokumen", "Layanan Visa", "Daftar Layanan Kemlu RI", "Daftar Perwakilan RI di Luar Negeri" ], 
+                    error: "Maaf, terjadi kesalahan pada sistem.", 
+                    liveChat: 'Sepertinya saya kesulitan membantu. Ingin bantuan langsung? <a href="https://kemlu.go.id/kontak" target="_blank">Hubungi kami melalui Live Chat</a>.',
+                    disclaimer: '*Informasi AI hanya bersifat panduan umum. Keputusan resmi tetap mengacu pada regulasi, situs <a href="https://kemlu.go.id" target="_blank">kemlu.go.id</a>, atau hubungi perwakilan terdekat.',
+                    modal: {
+                        title: 'Beri Masukan atau Laporan',
+                        label: 'Pesan Anda:',
+                        placeholder: 'Tuliskan masukan Anda mengenai respons AI, saran, atau laporan masalah di sini.',
+                        cancel: 'Batal',
+                        submit: 'Kirim',
+                        success: 'Masukan berhasil terkirim!',
+                        error: 'Pesan tidak boleh kosong. Mohon isi masukan Anda.',
+                        resetTitle: 'Konfirmasi',
+                        resetBody: 'Apakah Anda yakin ingin memulai ulang percakapan ini?',
+                        resetCancel: 'Batal',
+                        resetConfirm: 'Ya, Mulai Ulang',
+                        feedbackSuccess: 'Terima kasih atas penilaian Anda!',
+                        feedbackError: 'Gagal mengirim penilaian.',
+                        copySuccess: 'Teks berhasil disalin!',
+                        copyError: 'Gagal menyalin teks.',
+                        pdfError: 'Gagal membuat PDF.',
+                        pdfPrepare: 'Mempersiapkan PDF...'
+                    },
+                    helpModal: {
+                        title: '<i class="bi bi-book-half me-2"></i> Panduan Penggunaan',
+                        intro: 'Selamat datang di Asisten Virtual AI Kementerian Luar Negeri. Berikut adalah panduan singkat untuk membantu Anda.',
+                        startTitle: 'Memulai Percakapan',
+                        startDesc: 'Ketik pertanyaan Anda pada kolom input di bagian bawah dan tekan tombol kirim. Anda juga bisa memilih dari "Pertanyaan yang sering diajukan" untuk memulai.',
+                        resetTitle: 'Memulai Ulang (Reset)',
+                        resetDesc: 'Tekan tombol <i class="bi bi-arrow-clockwise"></i> untuk menghapus riwayat percakapan saat ini dan memulai sesi baru.',
+                        langTitle: 'Mengganti Bahasa',
+                        langDesc: 'Gunakan tombol <i class="bi bi-translate"></i> di pojok kanan atas untuk mengubah bahasa antara Indonesia dan Inggris. Percakapan akan dimulai ulang saat bahasa diubah.',
+                        feedbackTitle: 'Memberi Masukan',
+                        feedbackDesc: 'Jika Anda menemukan jawaban yang kurang tepat atau masalah teknis, gunakan tombol <i class="bi bi-flag"></i> untuk mengirimkan laporan atau masukan kepada kami.',
+                        disclaimer: '*Asisten AI ini bertujuan memberikan panduan umum. Informasi dan keputusan resmi tetap mengacu pada situs <a href="https://kemlu.go.id" target="_blank">kemlu.go.id</a> dan regulasi yang berlaku.',
+                        closeBtn: 'Tutup'
+                    }
+                }, 
+                en: { 
+                    heading: 'MINISTRY OF FOREIGN AFFAIRS', 
+                    subheading: 'R E P U B L I C  O F  I N D O N E S I A', 
+                    welcome: 'Hello, MoFA Friends! Welcome to the AI Virtual Assistant of the Ministry of Foreign Affairs. How can I help you today?', 
+                    faqHeader: 'Frequently Asked Questions:', 
+                    faq: [ "Self-Reporting (for Indonesian Citizens Abroad)", "Passport & SPLP (Travel Documents)", "Document Legalization", "Visa Services", "List of Services of the Ministry of Foreign Affairs of the Republic of Indonesia", "List of Indonesian Missions Abroad" ], 
+                    error: "Sorry, a system error occurred.", 
+                    liveChat: 'I seem to be having trouble. Need direct help? <a href="https://kemlu.go.id/kontak" target="_blank">Contact us via Live Chat</a>.',
+                    disclaimer: '*AI information is for general guidance only. Official decisions must refer to regulations, the <a href="https://kemlu.go.id" target="_blank">kemlu.go.id</a> website, or the nearest Indonesian mission.',
+                    modal: {
+                        title: 'Provide Feedback or a Report',
+                        label: 'Your Message:',
+                        placeholder: "Write your feedback about the AI's response, suggestions, or report an issue here.",
+                        cancel: 'Cancel',
+                        submit: 'Submit',
+                        success: 'Feedback sent successfully!',
+                        error: 'Failed, please enter your feedback.',
+                        resetTitle: 'Confirmation',
+                        resetBody: 'Are you sure you want to restart this conversation?',
+                        resetCancel: 'Cancel',
+                        resetConfirm: 'Yes, Restart',
+                        feedbackSuccess: 'Thank you for your feedback!',
+                        feedbackError: 'Failed to send feedback.',
+                        copySuccess: 'Text copied successfully!',
+                        copyError: 'Failed to copy text.',
+                        pdfError: 'Failed to generate PDF.',
+                        pdfPrepare: 'Preparing PDF...'
+                    },
+                    helpModal: {
+                        title: '<i class="bi bi-book-half me-2"></i> User Guide',
+                        intro: 'Welcome to the AI Virtual Assistant of the Ministry of Foreign Affairs. Here is a brief guide to help you get started.',
+                        startTitle: 'Starting a Conversation',
+                        startDesc: 'Type your question in the input field at the bottom and press the send button. You can also select from the "Frequently Asked Questions" to begin.',
+                        resetTitle: 'Resetting the Chat',
+                        resetDesc: 'Press the <i class="bi bi-arrow-clockwise"></i> button to clear the current conversation history and start a new session.',
+                        langTitle: 'Changing Language',
+                        langDesc: 'Use the <i class="bi bi-translate"></i> button in the top-right corner to switch the language between Indonesian and English. The conversation will restart when the language is changed.',
+                        feedbackTitle: 'Providing Feedback',
+                        feedbackDesc: 'If you find an incorrect answer or a technical issue, use the <i class="bi bi-flag"></i> button to send us a report or feedback.',
+                        disclaimer: '*This AI assistant is for general guidance. Official information and decisions should refer to the <a href="https://kemlu.go.id" target="_blank">kemlu.go.id</a> website and applicable regulations.',
+                        closeBtn: 'Close'
+                    }
+                } 
+            },
+
+            init() {
+                this.startNewSession();
+                this.langToggle.addEventListener('click', () => this.toggleLanguage());
+                this.form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+                this.downloadPdfBtn.addEventListener('click', () => this.downloadChatAsPDF());
+                this.input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.form.dispatchEvent(new Event('submit')); } });
+                
+                this.setupScrollButtons();
+                this.setupResetModal();
+
+                this.updateUIText(); 
+                this.showWelcomeMessage();
+            },
+
+            setupResetModal() {
+                const confirmResetBtn = document.getElementById('confirm-reset-btn');
+                const resetModalEl = document.getElementById('resetConfirmModal');
+                const resetModal = bootstrap.Modal.getInstance(resetModalEl) || new bootstrap.Modal(resetModalEl);
+
+                confirmResetBtn.addEventListener('click', () => {
+                    this.resetChat();
+                    resetModal.hide();
+                });
+            },
+
+            setupScrollButtons() {
+                const scrollTopBtn = document.getElementById('scroll-top-btn');
+                const scrollBottomBtn = document.getElementById('scroll-bottom-btn');
+                const scrollButtonsContainer = document.getElementById('scroll-buttons');
+
+                const adjustButtonPosition = () => {
+                    const lastMessage = this.chatLog.lastElementChild;
+                    if (!lastMessage) return;
+                    const chatLogRect = this.chatLog.getBoundingClientRect();
+                    const lastMessageRect = lastMessage.getBoundingClientRect();
+                    if (lastMessageRect.bottom > chatLogRect.bottom - 60) {
+                        scrollButtonsContainer.classList.add('nudge-up');
+                    } else {
+                        scrollButtonsContainer.classList.remove('nudge-up');
+                    }
+                };
+                scrollTopBtn.addEventListener('click', () => this.chatLog.scrollTo({ top: 0, behavior: 'smooth' }));
+                scrollBottomBtn.addEventListener('click', () => this.chatLog.scrollTo({ top: this.chatLog.scrollHeight, behavior: 'smooth' }));
+                this.chatLog.addEventListener('scroll', () => {
+                    const threshold = 200;
+                    const isAtBottom = this.chatLog.scrollHeight - this.chatLog.scrollTop - this.chatLog.clientHeight < 50;
+                    scrollTopBtn.classList.toggle('show', this.chatLog.scrollTop > threshold);
+                    scrollBottomBtn.classList.toggle('show', !isAtBottom);
+                    adjustButtonPosition();
+                });
+                new MutationObserver(adjustButtonPosition).observe(this.chatLog, { childList: true });
+            },
+            
+            startNewSession() { this.sessionId = new Date().getTime() + '-' + Math.random().toString(36).substr(2, 9); },
+
+            toggleLanguage() {
+                this.language = this.language === 'id' ? 'en' : 'id';
+                this.updateUIText();
+                this.resetChat();
+            },
+
+            updateUIText() {
+                const T = this.translations[this.language];
+                this.input.placeholder = this.placeholders[this.language];
+                this.heading.textContent = T.heading;
+                this.subheading.innerHTML = T.subheading.replace(/\s/g, '&nbsp;');
+                this.disclaimer.innerHTML = T.disclaimer;
+
+                // Update Feedback Modal
+                const T_modal = T.modal;
+                document.getElementById('reportModalLabel').textContent = T_modal.title;
+                document.getElementById('feedback-label').textContent = T_modal.label;
+                document.getElementById('feedback-text').placeholder = T_modal.placeholder;
+                document.getElementById('modal-cancel-btn').textContent = T_modal.cancel;
+                document.getElementById('submit-feedback-btn').textContent = T_modal.submit;
+                
+                // Update Reset Modal
+                document.getElementById('resetModalLabel').textContent = T_modal.resetTitle;
+                document.getElementById('reset-modal-body').textContent = T_modal.resetBody;
+                document.getElementById('reset-modal-cancel-btn').textContent = T_modal.resetCancel;
+                document.getElementById('confirm-reset-btn').textContent = T_modal.resetConfirm;
+
+                // Update Help Modal
+                const T_help = T.helpModal;
+                document.getElementById('helpModalLabel').innerHTML = T_help.title;
+                document.getElementById('help-modal-intro').textContent = T_help.intro;
+                document.getElementById('help-item-start-title').textContent = T_help.startTitle;
+                document.getElementById('help-item-start-desc').innerHTML = T_help.startDesc;
+                document.getElementById('help-item-reset-title').textContent = T_help.resetTitle;
+                document.getElementById('help-item-reset-desc').innerHTML = T_help.resetDesc;
+                document.getElementById('help-item-lang-title').textContent = T_help.langTitle;
+                document.getElementById('help-item-lang-desc').innerHTML = T_help.langDesc;
+                document.getElementById('help-item-feedback-title').textContent = T_help.feedbackTitle;
+                document.getElementById('help-item-feedback-desc').innerHTML = T_help.feedbackDesc;
+                document.getElementById('help-modal-disclaimer').innerHTML = T_help.disclaimer;
+                document.getElementById('help-modal-close-btn').textContent = T_help.closeBtn;
+            },
+
+            addMessage(content, senderClass) {
+                const messageId = `msg-${Date.now()}-${Math.random()}`;
+                const messageDiv = document.createElement('div');
+                messageDiv.className = senderClass;
+                messageDiv.id = messageId;
+
+                const contentWrapper = document.createElement('div');
+                contentWrapper.className = 'message-content';
+                contentWrapper.innerHTML = content;
+                
+                // Add action buttons for bot messages
+                if (senderClass.includes('bot-message') && !senderClass.includes('bot-typing')) {
+                    const actionsContainer = document.createElement('div');
+                    actionsContainer.className = 'message-actions';
+                    actionsContainer.innerHTML = `
+                        <button class="action-btn copy-btn" title="${this.language === 'id' ? 'Salin' : 'Copy'}">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                        <button class="action-btn tts-btn" title="Text-to-Speech">
+                            <i class="bi bi-volume-up"></i>
+                        </button>
+                        <div class="feedback-buttons">
+                            <button class="action-btn thumb-btn" data-vote="up" title="${this.language === 'id' ? 'Bagus' : 'Good'}">
+                                <i class="bi bi-hand-thumbs-up"></i>
+                            </button>
+                            <button class="action-btn thumb-btn" data-vote="down" title="${this.language === 'id' ? 'Buruk' : 'Bad'}">
+                                <i class="bi bi-hand-thumbs-down"></i>
+                            </button>
+                        </div>`;
+                    contentWrapper.appendChild(actionsContainer);
+                }
+                
+                const now = new Date();
+                const timestamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                const timestampSpan = document.createElement('span');
+                timestampSpan.className = 'chat-timestamp';
+                timestampSpan.textContent = timestamp;
+                
+                messageDiv.appendChild(contentWrapper);
+                if (!senderClass.includes('no-timestamp')) {
+                    messageDiv.appendChild(timestampSpan);
+                }
+
+                this.chatLog.appendChild(messageDiv);
+                this.chatLog.scrollTop = this.chatLog.scrollHeight;
+                this.addMessageActionListeners(messageId);
+                return messageDiv;
+            },
+
+            addMessageActionListeners(messageId) {
+                const messageEl = document.getElementById(messageId);
+                if (!messageEl) return;
+
+                const copyBtn = messageEl.querySelector('.copy-btn');
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', () => {
+                        const contentToCopy = messageEl.querySelector('.message-content').cloneNode(true);
+                        contentToCopy.querySelectorAll('.message-actions').forEach(el => el.remove()); // Remove actions before copying
+                        navigator.clipboard.writeText(contentToCopy.innerText).then(() => {
+                            showNotification('success', this.translations[this.language].modal.copySuccess);
+                        }, () => {
+                            showNotification('error', this.translations[this.language].modal.copyError);
+                        });
+                    });
+                }
+
+                const ttsBtn = messageEl.querySelector('.tts-btn');
+                if (ttsBtn) {
+                    ttsBtn.addEventListener('click', () => {
+                        const textToSpeak = messageEl.querySelector('.message-content').cloneNode(true);
+                        textToSpeak.querySelectorAll('.message-actions').forEach(el => el.remove());
+                        const utterance = new SpeechSynthesisUtterance(textToSpeak.innerText);
+                        utterance.lang = this.language === 'id' ? 'id-ID' : 'en-US';
+                        speechSynthesis.cancel(); // Stop any previous speech
+                        speechSynthesis.speak(utterance);
+                    });
+                }
+
+                messageEl.querySelectorAll('.thumb-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const vote = btn.getAttribute('data-vote');
+                        const parent = btn.closest('.feedback-buttons');
+                        if (parent.classList.contains('voted')) return;
+
+                        const messageContent = messageEl.querySelector('.message-content').cloneNode(true);
+                        messageContent.querySelectorAll('.message-actions').forEach(el => el.remove());
+                        
+                        try {
+                            const response = await fetch('/feedback', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ vote, message: messageContent.innerHTML, session_id: this.sessionId })
+                            });
+                            if (!response.ok) throw new Error('Server error');
+                            showNotification('success', this.translations[this.language].modal.feedbackSuccess);
+                            parent.classList.add('voted');
+                            btn.classList.add('active');
+                        } catch (error) {
+                            showNotification('error', this.translations[this.language].modal.feedbackError);
+                        }
+                    });
+                });
+            },
+            
+            // --- UPDATED PDF FUNCTION FOR BETTER IOS COMPATIBILITY ---
+            async downloadChatAsPDF() {
+                const { jsPDF } = window.jspdf;
+                const chatLog = document.getElementById('chat-log');
+                const chatLogWrapper = document.querySelector('.chat-log-wrapper');
+                
+                showNotification('success', this.translations[this.language].modal.pdfPrepare);
+
+                // --- Start: iOS Fix ---
+                // Save original styles to restore them later
+                const originalStyles = {
+                    chatLog: {
+                        backgroundColor: chatLog.style.backgroundColor,
+                        height: chatLog.style.height,
+                        overflow: chatLog.style.overflow
+                    },
+                    chatLogWrapper: {
+                        height: chatLogWrapper.style.height,
+                        overflow: chatLogWrapper.style.overflow,
+                        flexGrow: chatLogWrapper.style.flexGrow,
+                    }
+                };
+
+                // Temporarily change styles to ensure the full content is rendered
+                chatLog.style.backgroundColor = '#ffffff';
+                chatLog.style.height = 'auto';
+                chatLog.style.overflow = 'visible';
+                chatLogWrapper.style.height = 'auto';
+                chatLogWrapper.style.overflow = 'visible';
+                chatLogWrapper.style.flexGrow = '0';
+                // --- End: iOS Fix ---
+
+                try {
+                    const canvas = await html2canvas(chatLog, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        // This option can help with scroll position issues in some browsers
+                        scrollY: -window.scrollY,
+                        onclone: (document) => {
+                            document.querySelectorAll('.message-actions, #scroll-buttons').forEach(el => {
+                                el.style.visibility = 'hidden';
+                            });
+                        }
+                    });
+                    
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF({
+                        orientation: 'p',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    const margin = 10;
+
+                    const imgProps = pdf.getImageProperties(imgData);
+                    const imgWidth = pdfWidth - (margin * 2);
+                    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+                    
+                    let heightLeft = imgHeight;
+                    let position = margin;
+
+                    pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+                    heightLeft -= (pdfHeight - (margin * 2));
+
+                    while (heightLeft > 0) {
+                        position = -(imgHeight - heightLeft - margin);
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+                        heightLeft -= (pdfHeight - (margin * 2));
+                    }
+                    
+                    pdf.save(`Chat-Kemlu-${this.sessionId}.pdf`);
+
+                } catch (error) {
+                    console.error("PDF Generation Error:", error);
+                    showNotification('error', this.translations[this.language].modal.pdfError);
+                } finally {
+                    // --- Start: Restore Original Styles ---
+                    // IMPORTANT: Always restore the original styles, even if an error occurs
+                    chatLog.style.backgroundColor = originalStyles.chatLog.backgroundColor;
+                    chatLog.style.height = originalStyles.chatLog.height;
+                    chatLog.style.overflow = originalStyles.chatLog.overflow;
+                    chatLogWrapper.style.height = originalStyles.chatLogWrapper.height;
+                    chatLogWrapper.style.overflow = originalStyles.chatLogWrapper.overflow;
+                    chatLogWrapper.style.flexGrow = originalStyles.chatLogWrapper.flexGrow;
+                    // --- End: Restore Original Styles ---
+                }
+            },
+
+            showWelcomeMessage() {
+                this.chatLog.innerHTML = "";
+                this.clearFollowUps();
+                setTimeout(() => {
+                    // Gabungkan pesan sapaan dan daftar FAQ menjadi satu
+                    const welcomeText = this.translations[this.language].welcome;
+                    let faqHTML = `<br><br>${this.translations[this.language].faqHeader}<ul class="faq-list">`;
+                    this.translations[this.language].faq.forEach(q => {
+                        faqHTML += `<li><span class="faq-link" data-question="${q}">${q}</span></li>`;
+                    });
+                    faqHTML += '</ul>';
+
+                    // Tampilkan semua konten dalam satu gelembung chat
+                    this.addMessage(welcomeText + faqHTML, 'bot-message no-timestamp');
+                    
+                    // Aktifkan event listener untuk link FAQ
+                    this.addFAQListeners();
+                }, 500);
+            },
+            
+            addFAQListeners() {
+                document.querySelectorAll(".faq-link").forEach(link => {
+                    link.onclick = () => {
+                        if (this.isTyping) return;
+                        this.input.value = link.getAttribute("data-question");
+                        this.form.dispatchEvent(new Event("submit"));
+                        link.classList.add("clicked");
+                        setTimeout(() => link.classList.remove("clicked"), 1200);
+                    };
+                });
+            },
+            
+            displayFollowUps(questions) {
+                this.clearFollowUps();
+                if (questions && questions.length > 0) {
+                    questions.forEach(question => {
+                        const button = document.createElement('button');
+                        button.className = 'follow-up-btn';
+                        button.textContent = question;
+                        button.onclick = () => {
+                            if (this.isTyping) return;
+                            this.input.value = question;
+                            this.form.dispatchEvent(new Event("submit"));
+                        };
+                        this.followUpContainer.appendChild(button);
+                    });
+                }
+            },
+            
+            clearFollowUps() { this.followUpContainer.innerHTML = ''; },
+            
+            async handleFormSubmit(e) {
+                e.preventDefault();
+                const userMessage = this.input.value.trim();
+                if (!userMessage || this.isTyping) return;
+                this.isTyping = true;
+                this.clearFollowUps();
+                this.addMessage(userMessage, 'user-message');
+                this.input.value = '';
+                this.input.setAttribute('disabled', 'true');
+                const botTyping = this.addMessage('<div class="typing-indicator"></div><div class="typing-indicator"></div><div class="typing-indicator"></div>', 'bot-typing-message');
+                try {
+                    const response = await fetch('/ask', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: userMessage, language: this.language, session_id: this.sessionId })
+                    });
+                    const responseData = await response.json();
+                    botTyping.remove();
+                    this.addMessage(responseData.reply, 'bot-message');
+                    this.displayFollowUps(responseData.follow_up);
+                    if (responseData.reply.toLowerCase().includes('maaf') || responseData.reply.toLowerCase().includes('sorry')) {
+                        this.errorCount++;
+                        if (this.errorCount >= 3) {
+                            this.addMessage(this.translations[this.language].liveChat, 'bot-message');
+                            this.errorCount = 0;
+                        }
+                    } else { this.errorCount = 0; }
+                } catch (err) {
+                    console.error("Fetch error:", err);
+                    botTyping.remove();
+                    this.addMessage(this.translations[this.language].error, 'bot-message');
+                } finally {
+                    this.isTyping = false;
+                    this.input.removeAttribute('disabled');
+                    this.input.focus();
+                }
+            },
+            
+            resetChat() {
+                this.chatLog.innerHTML = "";
+                this.input.value = "";
+                this.errorCount = 0;
+                this.isTyping = false;
+                this.input.removeAttribute('disabled');
+                this.showWelcomeMessage();
+                this.startNewSession();
+            },
+        };
+
+        const successAlert = document.getElementById('success-alert');
+        const errorAlert = document.getElementById('error-alert');
+
+        function showNotification(type, message) {
+            const alertEl = type === 'success' ? successAlert : errorAlert;
+            alertEl.querySelector('span').textContent = message;
+            alertEl.classList.add('show');
+            setTimeout(() => { alertEl.classList.remove('show'); }, 3000);
+        }
+
+        Chatbot.init();
+
+        const reportModalEl = document.getElementById('reportModal');
+        const reportForm = document.getElementById('report-form');
+        const feedbackText = document.getElementById('feedback-text');
+        const reportModal = new bootstrap.Modal(reportModalEl);
+
+        reportForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const feedback = feedbackText.value.trim();
+            if (feedback) {
+                try {
+                    const response = await fetch('/report', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ feedback, session_id: Chatbot.sessionId })
+                    });
+                    if (!response.ok) throw new Error('Server error');
+                    showNotification('success', Chatbot.translations[Chatbot.language].modal.success);
+                } catch (error) {
+                    showNotification('error', Chatbot.translations[Chatbot.language].modal.error);
+                } finally {
+                    feedbackText.value = '';
+                    reportModal.hide();
+                }
+            } else {
+                showNotification('error', Chatbot.translations[Chatbot.language].modal.error);
+            }
+        });
+
+        reportModalEl.addEventListener('hidden.bs.modal', () => {
+            feedbackText.value = '';
+        });
+    });
+    </script>
+</body>
+</html>
