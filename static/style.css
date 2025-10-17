@@ -220,49 +220,53 @@ textarea.form-control::placeholder {
     border-bottom: 1px solid #e9ecef;
 }
 
+/* --- PERBAIKAN UNTUK TEKS FAQ TIDAK GETAR (KODE BARU) --- */
 .faq-link {
   color: #002147;
   text-decoration: none;
   cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .faq-link:hover {
   color: #b00020;
   background-color: #ffe6e6;
-  border-radius: 4px;
-  padding: 2px 4px;
 }
+/* --- AKHIR PERBAIKAN --- */
 
 .faq-link.clicked {
   text-shadow: 0 2px 6px rgba(255, 0, 0, 0.5);
   transition: text-shadow 0.3s ease;
 }
 
-/* --- PERBAIKAN UNTUK FAQ LIST --- */
 .faq-list {
-  list-style: none; /* 1. Hapus bullet & padding bawaan */
+  list-style: none;
   padding-left: 0;
   margin: 10px 0 0 0;
   text-align: left;
 }
 
 .faq-list li {
-  display: flex; /* 2. Gunakan flexbox untuk alignment */
-  align-items: flex-start; /* Ratakan item ke atas */
+  display: flex;
+  align-items: flex-start;
   margin-bottom: 8px;
 }
 
 .faq-list li::before {
-  content: "•"; /* 3. Buat bullet point manual */
+  content: "•";
   color: #002147;
-  margin-right: 0.6em; /* Jarak antara bullet dan teks */
+  margin-right: 0.6em;
   font-weight: bold;
 }
-/* --- AKHIR PERBAIKAN --- */
 
 .bot-typing-message .message-content {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  height: 1.2em;
+  padding-bottom: 2px;
 }
 
 .typing-indicator {
@@ -500,13 +504,12 @@ textarea.form-control::placeholder {
     font-size: 1.2rem;
 }
 
-/* --- ACTION BUTTONS ALWAYS VISIBLE --- */
 .message-actions {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-top: 8px;
-    opacity: 1; /* Make buttons visible by default */
+    opacity: 1;
     padding-left: 4px;
 }
 
@@ -539,7 +542,7 @@ textarea.form-control::placeholder {
 }
 
 .feedback-buttons {
-    margin-left: auto; /* Pushes feedback to the right */
+    margin-left: auto;
     display: flex;
     gap: 4px;
 }
